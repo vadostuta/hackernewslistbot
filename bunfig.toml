@@ -1,0 +1,3 @@
+[install]
+# Override global registry to use public npm registry for this project
+registry = "https://registry.npmjs.org/"

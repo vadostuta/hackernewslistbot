@@ -1,0 +1,20 @@
+name = "hackernewstopbot"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+
+# Cron trigger for daily fetch at 8:00 AM CET
+# 7:00 UTC = 8:00 AM CET (winter) / 7:00 AM CEST (summer with DST)
+[triggers]
+crons = ["0 7 * * *"]
+
+# KV namespace for storing active user list and statistics
+[[kv_namespaces]]
+binding = "USERS_KV"
+id = "2948231bcf5a4a1fa1d0896d51cf4e9c"
+
+# Environment variables (secrets should be set via: wrangler secret put)
+# TELEGRAM_BOT_TOKEN - Your Telegram bot token (required)
+# TELEGRAM_WEBHOOK_SECRET - Random secret for webhook validation (required)
+# ADMIN_CHAT_ID - Optional: Your Telegram chat ID for accessing /stats command
+#                 Get your chat ID by messaging @userinfobot on Telegram
+#                 Can be comma-separated for multiple admins (e.g., "123456,789012")
