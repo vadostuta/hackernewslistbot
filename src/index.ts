@@ -14,6 +14,20 @@ app.get('/', (c) => {
   return c.text('🤖 Hacker News Top Bot is running!');
 });
 
+// Manual cron trigger for testing (GET request for easy testing)
+app.get('/trigger-cron', async (c) => {
+  const env = c.env;
+
+  try {
+    console.log('Manual cron trigger started');
+    await handleScheduled(env);
+    return c.text('✅ Cron job executed successfully! Check your Telegram for the message.');
+  } catch (error) {
+    console.error('Manual cron trigger error:', error);
+    return c.text('❌ Error: ' + error, 500);
+  }
+});
+
 // Webhook endpoint for Telegram updates
 app.post('/webhook', async (c) => {
   const env = c.env;

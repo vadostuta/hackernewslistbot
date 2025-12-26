@@ -2,10 +2,10 @@ name = "hackernewstopbot"
 main = "src/index.ts"
 compatibility_date = "2024-12-01"
 
-# Cron trigger for daily fetch at 8:00 AM CET
-# 7:00 UTC = 8:00 AM CET (winter) / 7:00 AM CEST (summer with DST)
+# Cron trigger for daily fetch at 10:00 AM CET (FOR TESTING)
+# 9:00 UTC = 10:00 AM CET (winter) / 9:00 AM CEST (summer with DST)
 [triggers]
-crons = ["0 7 * * *"]
+crons = ["0 9 * * *"]
 
 # KV namespace for storing active user list and statistics
 [[kv_namespaces]]

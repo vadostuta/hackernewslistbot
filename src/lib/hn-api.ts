@@ -36,11 +36,16 @@ async function fetchStory(id: number): Promise<HNStory | null> {
 
     const data = await response.json();
 
+    // Skip non-story items (jobs, polls, comments, etc.)
+    if (data.type !== 'story') {
+      return null;
+    }
+
     // Validate with zod
     const parsed = HNStorySchema.safeParse(data);
 
     if (!parsed.success) {
-      console.error(`Invalid story data for ${id}:`, parsed.error);
+      console.error(`Invalid story data for ${id}:`, JSON.stringify(parsed.error));
       return null;
     }
 
