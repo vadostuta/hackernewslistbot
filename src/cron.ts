@@ -1,19 +1,23 @@
 import type { Env } from './types';
 import { createBot } from './lib/bot';
 import { fetchTopStories } from './lib/hn-api';
-import { setCachedStories, getActiveUsers, getUserStats } from './lib/storage';
+import { setCachedStories, getUsersForDeliveryHour, getUserStats } from './lib/storage';
 import { formatStories, createPaginationKeyboard, getTotalPages } from './lib/telegram';
 import { sleep } from './lib/utils';
 
 /**
- * Cron handler for daily story fetching
- * Triggered at 7:00 UTC (8:00 AM CET in winter)
+ * Cron handler for hourly story delivery
+ * Sends stories to users based on their preferred delivery time
  */
 export async function handleScheduled(env: Env): Promise<void> {
   console.log('🕐 Cron job started at:', new Date().toISOString());
 
   try {
-    // Step 1: Fetch top 30 stories from HN
+    // Step 1: Get current hour (UTC)
+    const currentHour = new Date().getUTCHours();
+    console.log(`Current UTC hour: ${currentHour}`);
+
+    // Step 2: Fetch top 30 stories from HN
     console.log('Fetching top 30 stories from Hacker News...');
     const stories = await fetchTopStories(30);
 
@@ -24,12 +28,12 @@ export async function handleScheduled(env: Env): Promise<void> {
 
     console.log(`✅ Fetched ${stories.length} stories`);
 
-    // Step 2: Cache the stories for the day
+    // Step 3: Cache the stories
     await setCachedStories(stories);
     console.log('✅ Stories cached');
 
-    // Step 3: Get list of active users and log statistics
-    const users = await getActiveUsers(env);
+    // Step 4: Get users who should receive stories at this hour
+    const users = await getUsersForDeliveryHour(env, currentHour);
 
     // Log user statistics if KV is configured
     if (env.USERS_KV) {
@@ -42,11 +46,11 @@ export async function handleScheduled(env: Env): Promise<void> {
     }
 
     if (users.length === 0) {
-      console.log('No active users to notify');
+      console.log(`No users scheduled for delivery at hour ${currentHour} UTC`);
       return;
     }
 
-    console.log(`📤 Sending stories to ${users.length} users...`);
+    console.log(`📤 Sending stories to ${users.length} users scheduled for ${currentHour}:00 UTC...`);
 
     // Step 4: Send stories to each user
     const bot = createBot(env);

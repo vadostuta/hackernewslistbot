@@ -215,3 +215,70 @@ export function isAdmin(env: Env, chatId: number): boolean {
   const adminIds = env.ADMIN_CHAT_ID.split(',').map((id) => parseInt(id.trim(), 10));
   return adminIds.includes(chatId);
 }
+
+/**
+ * Set user's preferred delivery hour (UTC, 0-23)
+ */
+export async function setPreferredDeliveryHour(
+  env: Env,
+  chatId: number,
+  hour: number
+): Promise<void> {
+  if (!env.USERS_KV) {
+    console.log('KV not configured, skipping delivery hour update');
+    return;
+  }
+
+  if (hour < 0 || hour > 23) {
+    throw new Error('Hour must be between 0 and 23');
+  }
+
+  try {
+    const key = `${USER_ACTIVITY_PREFIX}${chatId}`;
+    const existingJson = await env.USERS_KV.get(key);
+
+    if (!existingJson) {
+      throw new Error('User not found. Please send /start first.');
+    }
+
+    const activity: UserActivity = JSON.parse(existingJson);
+    activity.preferredDeliveryHour = hour;
+
+    await env.USERS_KV.put(key, JSON.stringify(activity));
+    console.log(`Set delivery hour for user ${chatId} to ${hour} UTC`);
+  } catch (error) {
+    console.error('Error setting preferred delivery hour:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get users who should receive stories at the current hour
+ * Default delivery hour is 8 UTC (9am CET in winter)
+ */
+export async function getUsersForDeliveryHour(env: Env, hour: number): Promise<number[]> {
+  if (!env.USERS_KV) {
+    return [];
+  }
+
+  try {
+    const activities = await getAllUsersActivity(env);
+    const DEFAULT_DELIVERY_HOUR = 8; // 9am CET in winter
+
+    const usersToNotify = activities
+      .filter((activity) => {
+        const preferredHour = activity.preferredDeliveryHour ?? DEFAULT_DELIVERY_HOUR;
+        return preferredHour === hour;
+      })
+      .map((activity) => activity.chatId);
+
+    console.log(
+      `Found ${usersToNotify.length} users for delivery at hour ${hour} UTC`
+    );
+
+    return usersToNotify;
+  } catch (error) {
+    console.error('Error getting users for delivery hour:', error);
+    return [];
+  }
+}

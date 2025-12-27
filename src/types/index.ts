@@ -42,6 +42,7 @@ export interface UserActivity {
   lastSeen: number; // Unix timestamp
   firstSeen: number; // Unix timestamp
   interactionCount: number;
+  preferredDeliveryHour?: number; // UTC hour (0-23), default: 8 (9am CET in winter)
 }
 
 // User statistics

@@ -5,6 +5,7 @@ import { createBot } from './lib/bot';
 import { handleStartCommand } from './handlers/commands';
 import { handleCallbackQuery } from './handlers/callbacks';
 import { handleStatsCommand } from './handlers/stats';
+import { handleTimeCommand } from './handlers/time';
 import { handleScheduled } from './cron';
 
 const app = new Hono<{ Bindings: Env }>();
@@ -52,8 +53,14 @@ app.post('/webhook', async (c) => {
       await handleStatsCommand(ctx, env);
     });
 
+    bot.command('time', async (ctx) => {
+      await handleTimeCommand(ctx, env);
+    });
+
     // Register callback query handler
-    bot.on('callback_query:data', handleCallbackQuery);
+    bot.on('callback_query:data', async (ctx) => {
+      await handleCallbackQuery(ctx, env);
+    });
 
     // Initialize bot before handling updates
     await bot.init();
@@ -69,13 +76,14 @@ app.post('/webhook', async (c) => {
   }
 });
 
-// Export scheduled handler for cron triggers
-export const scheduled = async (
-  event: ScheduledEvent,
-  env: Env,
-  ctx: ExecutionContext
-): Promise<void> => {
-  await handleScheduled(env);
+// Export both the Hono app and scheduled handler
+export default {
+  fetch: app.fetch,
+  scheduled: async (
+    event: ScheduledEvent,
+    env: Env,
+    ctx: ExecutionContext
+  ): Promise<void> => {
+    await handleScheduled(env);
+  },
 };
-
-export default app;

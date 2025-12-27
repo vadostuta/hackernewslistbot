@@ -102,11 +102,16 @@ export function getTotalPages(storiesCount: number, itemsPerPage: number = ITEMS
 export function getWelcomeMessage(): string {
   return `👋 *Welcome to Hacker News Top Bot\\!*
 
-I'll fetch the top 30 stories from Hacker News and send them to you every day at 8:00 AM CET\\.
+I'll fetch the top 30 stories from Hacker News and send them to you daily at *9:00 AM CET* by default\\.
+
+⏰ Want to change the delivery time? Use /time to set your preferred hour\\.
 
 You can also click the *🔄 Fetch Current* button anytime to get the latest stories on\\-demand\\.
 
-Use /start anytime to refresh the stories\\.
+*Commands:*
+• /start \\- Get today's top stories
+• /time \\- Set your preferred delivery time
+• /stats \\- View bot statistics \\(admin only\\)
 
 Let's get started\\!`;
 }

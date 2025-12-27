@@ -1,12 +1,14 @@
 import type { CallbackQueryContext, Context } from 'grammy';
+import type { Env } from '../types';
 import { decodeCallback } from '../lib/utils';
 import { formatStories, createPaginationKeyboard, getTotalPages } from '../lib/telegram';
 import { fetchCurrentStories } from './fetch-current';
+import { handleTimeSelection } from './time';
 
 /**
- * Handle callback queries (pagination and fetch current)
+ * Handle callback queries (pagination, fetch current, and time selection)
  */
-export async function handleCallbackQuery(ctx: CallbackQueryContext<Context>): Promise<void> {
+export async function handleCallbackQuery(ctx: CallbackQueryContext<Context>, env: Env): Promise<void> {
   try {
     const callbackData = ctx.callbackQuery.data;
 
@@ -15,17 +17,26 @@ export async function handleCallbackQuery(ctx: CallbackQueryContext<Context>): P
       return;
     }
 
-    // Decode callback data
+    // Handle "noop" (page indicator button)
+    if (callbackData === 'noop') {
+      await ctx.answerCallbackQuery();
+      return;
+    }
+
+    // Handle time selection (format: "time:9")
+    if (callbackData.startsWith('time:')) {
+      const hour = parseInt(callbackData.split(':')[1], 10);
+      if (!isNaN(hour)) {
+        await handleTimeSelection(ctx, env, hour);
+        return;
+      }
+    }
+
+    // Decode callback data for other actions
     const action = decodeCallback(callbackData);
 
     if (!action) {
       await ctx.answerCallbackQuery('Invalid action');
-      return;
-    }
-
-    // Handle "noop" (page indicator button)
-    if (callbackData === 'noop') {
-      await ctx.answerCallbackQuery();
       return;
     }
 

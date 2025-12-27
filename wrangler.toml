@@ -2,10 +2,10 @@ name = "hackernewstopbot"
 main = "src/index.ts"
 compatibility_date = "2024-12-01"
 
-# Cron trigger for daily fetch at 10:00 AM CET (FOR TESTING)
-# 9:00 UTC = 10:00 AM CET (winter) / 9:00 AM CEST (summer with DST)
+# Cron trigger runs every hour to deliver stories to users at their preferred time
+# Users can set their preferred delivery time with /time command (default: 9am CET)
 [triggers]
-crons = ["0 9 * * *"]
+crons = ["0 * * * *"]
 
 # KV namespace for storing active user list and statistics
 [[kv_namespaces]]
